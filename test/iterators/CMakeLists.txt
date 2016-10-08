@@ -1,0 +1,2 @@
+add_executable(test_counting_iterator test_counting_iterator.cpp)
+add_executable(test_multi_iterator test_multi_iterator.cpp)
