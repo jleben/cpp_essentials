@@ -69,7 +69,13 @@ template <typename Container>
 class countable_c
 {
 public:
-  typedef counting_iterator<typename Container::iterator> iterator;
+  template <typename C>
+  struct valid_iterator { typedef typename C::iterator type; };
+
+  template<typename C>
+  struct valid_iterator<const C> { typedef typename C::const_iterator type; };
+
+  typedef counting_iterator<typename valid_iterator<Container>::type> iterator;
 
   countable_c(Container & c): c(c) {}
 
@@ -84,28 +90,6 @@ public:
 
 private:
   Container & c;
-};
-
-template <typename Container>
-class countable_c<const Container>
-{
-public:
-  typedef counting_iterator<typename Container::const_iterator> const_iterator;
-
-  countable_c(const Container & c): c(c) {}
-
-  const_iterator begin() const
-  {
-    return const_iterator(c.begin(), 0);
-  }
-
-  const_iterator end() const
-  {
-    return const_iterator(c.end(), -1);
-  }
-
-private:
-  const Container & c;
 };
 
 template <typename Container>

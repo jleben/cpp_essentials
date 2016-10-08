@@ -163,7 +163,14 @@ template <typename ... Containers>
 class multi_iterable
 {
 public:
-  typedef multi_iterator<typename Containers::iterator...> iterator;
+  template <typename C>
+  struct valid_iterator { typedef typename C::iterator type; };
+
+  template<typename C>
+  struct valid_iterator<const C> { typedef typename C::const_iterator type; };
+
+
+  typedef multi_iterator<typename valid_iterator<Containers>::type...> iterator;
   typedef std::tuple<Containers&...> containers;
 
   multi_iterable(Containers& ... cs): cs(cs...) {}
@@ -171,13 +178,13 @@ public:
   struct get_begin
   {
     template<typename C>
-    typename C::iterator operator()(C & c) const { return c.begin(); }
+    typename valid_iterator<C>::type operator()(C & c) const { return c.begin(); }
   };
 
   struct get_end
   {
     template<typename C>
-    typename C::iterator operator()(C & c) const { return c.end(); }
+    typename valid_iterator<C>::type operator()(C & c) const { return c.end(); }
   };
 
   iterator begin()
@@ -193,43 +200,6 @@ public:
 private:
   containers cs;
 };
-
-#if 0
-template <typename ... Containers>
-class multi_iterable<const Containers...>
-{
-public:
-  typedef multi_iterator<typename Containers::const_iterator...> iterator;
-  typedef std::tuple<const Containers&...> containers;
-
-  multi_iterable(const Containers& ... cs): cs(cs...) {}
-
-  struct get_begin
-  {
-    template<typename C>
-    typename C::iterator operator()(C & c) const { return c.begin(); }
-  };
-
-  struct get_end
-  {
-    template<typename C>
-    typename C::iterator operator()(C & c) const { return c.end(); }
-  };
-
-  iterator begin()
-  {
-    return mapper<get_begin, Containers &...>::map(get_begin(), cs);
-  }
-
-  iterator end()
-  {
-    return mapper<get_end, Containers &...>::map(get_end(), cs);
-  }
-
-private:
-  containers cs;
-};
-#endif
 
 template <typename ... Cs>
 inline
